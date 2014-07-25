@@ -36,35 +36,45 @@ namespace tinyxml2
     class XMLDocument; 
 }
 NS_CC_BEGIN
-    float  generateScalar(float min, float max);
 struct Particle3D;
 class ParticleSystem3D;
-
+/**
+Base class of particle Affector
+A class affect the particle
+*/
 class ParticleAffector 
 {
 public:
     ParticleAffector(ParticleSystem3D* system);
     virtual ~ParticleAffector();
-    /**
-    * change particle color over time
-    */
+    //init particle affector
     virtual void initAffector(Particle3D* p){}
+    //update particle affector
     virtual void updateAffector(Particle3D* p,float dt){}
+    //load particle affector data
     virtual bool load(tinyxml2::XMLElement* element);
+    //save particle affector data
     virtual bool save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc);
 protected:
     ParticleSystem3D* _parSystem;
 };
+
 struct ColorAffectorConfig
 {
     int   type;
     Vec4  endColor;	
 };
+/**
+Defines particle color Affector
+It is a compulsory component for particle system
+It updates particle color
+*/
 class ColorAffector  : public ParticleAffector
 {
 public:
     ColorAffector(ParticleSystem3D* system);
     virtual ~ColorAffector();
+    //init particle color affector
     virtual void initAffector(Particle3D* p);
     virtual void updateAffector(Particle3D* p,float dt);
     virtual bool load(tinyxml2::XMLElement* element);
@@ -80,11 +90,17 @@ struct ScaleAffectorConfig
     int   type;
     float endScale;	
 };
+/**
+Defines particle scale Affector
+It is a compulsory component for particle system
+It updates particle scale
+*/
 class ScaleAffector  : public ParticleAffector
 {
 public:
     ScaleAffector(ParticleSystem3D* system);
     virtual ~ScaleAffector();
+     //init particle scale affector
     virtual void initAffector(Particle3D* p);
     virtual void updateAffector(Particle3D* p,float dt);
     virtual bool load(tinyxml2::XMLElement* element);
@@ -98,11 +114,17 @@ struct RotAffectorConfig
     int   type;
     int   rotationEnd;
 };
+/**
+Defines particle rot Affector
+It is a compulsory component for particle system
+It updates particle rot
+*/
 class RotAffector  : public ParticleAffector
 {
 public:
     RotAffector(ParticleSystem3D* system);
     virtual ~RotAffector();
+     //init particle rot affector
     virtual void initAffector(Particle3D* p);
     virtual void updateAffector(Particle3D* p,float dt);
     virtual bool load(tinyxml2::XMLElement* element);

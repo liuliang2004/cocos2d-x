@@ -71,8 +71,10 @@ ParticleSystem3D::ParticleSystem3D():
     _state = STOP;
     _cameraUp=	Vec3(0,1,0);
     _cameraRight=Vec3(1,0,0);
+    _CamDir=Vec3(0,0,1);
     _emitterConfig.emitDuration=-1;
     _emitterConfig.emitPos = Vec3(0,0,0);
+    _emitterConfig.followPosition=true;
     _blend = BlendFunc::ADDITIVE;
 }
 ParticleSystem3D::~ParticleSystem3D()
@@ -84,11 +86,15 @@ void ParticleSystem3D::update(float dt)
 {  
     if (_particles)
     {
-        if(_emitterConfig.billboardType	==BILLBOARD)
+        if(_emitterConfig.billboardType 	==BILLBOARD)
         {
             Mat4& cameraViewMatrix = Camera3D::getActiveCamera()->getViewMatrix().getInversed();
             cameraViewMatrix.getRightVector(&_cameraRight);
             cameraViewMatrix.getUpVector(&_cameraUp);
+        }
+        else if(_emitterConfig.billboardType 	==BILLBOARD_SELF)
+        {
+             _CamDir=Camera3D::getActiveCamera()->getLookPos()-Camera3D::getActiveCamera()->getPosition3D();
         }
         if( _state == RUNNING)
         {
@@ -265,17 +271,39 @@ void ParticleSystem3D::updateBillboardParticle(Particle3D* particle,const Vec3& 
 { 
     V3F_C4B_T2F_Quad *quad=&(_quads[_particleIdx]);
     Color4B color = Color4B(particle->color.r*255,particle->color.g*255,particle->color.b*255,particle->color.a*255);
-    Vec3 halfsizeright(0.5f*_emitterConfig.billboardSize.x*particle->scale*_cameraRight);
-    Vec3 halfsizeup(0.5f*_emitterConfig.billboardSize.y*particle->scale*_cameraUp);
-    quad->bl.colors = color;
-    quad->br.colors = color;
-    quad->tl.colors = color;
-    quad->tr.colors = color;
+   // Vec3 halfsizeright(0.5f*_emitterConfig.billboardSize.x*particle->scale*_cameraRight);
+    //Vec3 halfsizeup(0.5f*_emitterConfig.billboardSize.y*particle->scale*_cameraUp);
+    float fLeft   = -0.5f;
+	float fRight  = 0.5f;
+    float fTop    = 0.5f;
+    float fBottom = -0.5f;
+    Vec3  billboardX,billboardY;
+    if(_emitterConfig.billboardType ==BILLBOARD_SELF)
+    {
+        billboardY =particle->velocity;
+        billboardY.normalize();
+        Vec3::cross(-_CamDir,billboardY,&billboardX);
+        billboardX.normalize();
+    }
+    else if(_emitterConfig.billboardType ==XY)
+    {
+        billboardX=_cameraRight;
+        billboardY=_cameraUp;
+    }
+    else
+    {
+        billboardX=_cameraRight.getNormalized();
+        billboardY=_cameraUp.getNormalized();
+    }
+    Vec3  leftOff   = billboardX * _emitterConfig.billboardSize.x*particle->scale * fLeft;
+	Vec3  rightOff  = billboardX * _emitterConfig.billboardSize.x*particle->scale * fRight;
+	Vec3  topOff    = billboardY * _emitterConfig.billboardSize.y*particle->scale * fTop;
+	Vec3  bottomOff = billboardY * _emitterConfig.billboardSize.y*particle->scale * fBottom;
     Vec3 vOffset[4];
-    vOffset[0] =-halfsizeright-halfsizeup;
-    vOffset[1] =halfsizeright-halfsizeup;
-    vOffset[2] =-halfsizeright+halfsizeup;
-    vOffset[3] =halfsizeright+halfsizeup;
+    vOffset[0] = leftOff + bottomOff;
+	vOffset[1] = rightOff + bottomOff;
+	vOffset[2] = leftOff + topOff;
+	vOffset[3] = rightOff + topOff;
     if (particle->rotation!=0.0f) 
     {
         Vec3 axis=vOffset[3] - vOffset[0];
@@ -287,6 +315,10 @@ void ParticleSystem3D::updateBillboardParticle(Particle3D* particle,const Vec3& 
         rotMat.transformVector(&vOffset[2]);
         rotMat.transformVector(&vOffset[3]);
     }
+    quad->bl.colors = color;
+    quad->br.colors = color;
+    quad->tl.colors = color;
+    quad->tr.colors = color;
     quad->bl.vertices =newPosition+vOffset[0];
     quad->br.vertices =newPosition+vOffset[1];
     quad->tl.vertices =newPosition+vOffset[2];
@@ -326,6 +358,11 @@ void   ParticleSystem3D::initParticlePos(Particle3D* particle)
         particle->position=Vec3::ZERO;
     }
     particle->position+=_emitterConfig.emitPos;
+    if (_emitterConfig.followPosition)
+    {
+        particle->startPos.x = convertToWorldSpace(Vec2::ZERO).x;
+        particle->startPos.y = convertToWorldSpace(Vec2::ZERO).y;
+    }
 }
 void   ParticleSystem3D::initParticleLife(Particle3D* particle)
 {
@@ -410,6 +447,12 @@ void  ParticleSystem3D::emitterParticle(float dt)
 void   ParticleSystem3D::updateParticle(float dt)
 {
     _particleIdx = 0;
+    Vec3 currentPosition = Vec3::ZERO;
+    if (_emitterConfig.followPosition)
+    {
+        currentPosition.x = convertToWorldSpace(Vec2::ZERO).x;
+        currentPosition.y = convertToWorldSpace(Vec2::ZERO).y;
+    }
     while (_particleIdx < _particleCount)
     {
         Particle3D *p = &_particles[_particleIdx];
@@ -422,7 +465,16 @@ void   ParticleSystem3D::updateParticle(float dt)
                 (*iter)->updateAffector(p,dt);
             }
             p->position += p->velocity * dt;
-            Vec3    newPos=p->position;
+            Vec3    newPos;
+            if (_emitterConfig.followPosition)
+            {
+                Vec3 diff = currentPosition - p->startPos;
+                newPos = p->position - diff;
+            } 
+            else
+            {
+                newPos = p->position;
+            }
             updateBillboardParticle(p,newPos);
             ++_particleIdx;
         }

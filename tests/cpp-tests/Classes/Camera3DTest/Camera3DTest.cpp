@@ -83,12 +83,25 @@ Camera3DTestDemo::~Camera3DTestDemo(void)
 {
 }
 
-void Camera3DTestDemo::addNewParticleSystemWithCoords(Vec3 p)
+void Camera3DTestDemo::addNewParticleSystemWithCoords(Vec3 p,std::string fileName,float scale,bool runAction)
 {
-    auto particleSystem3D = ParticleSystem3D::create("CameraTest\\particle3Dtest.particle");
+    auto particleSystem3D = ParticleSystem3D::create(fileName);
     particleSystem3D->setPosition3D(p);
-    particleSystem3D->setScale(0.5);
+    particleSystem3D->setScale(scale);
     particleSystem3D->start();
+    if(runAction)
+    {
+        /*ccBezierConfig bezier;
+        bezier.controlPoint_1 = Vec2(0,0);
+        bezier.controlPoint_2 = Vec2(100, 100);
+        bezier.endPosition    = Vec2(200,0);
+        ActionInterval* action= action = BezierTo::create(3, bezier);*/
+        //auto action = MoveTo::create(3, Vec2(200, 0));;
+        //auto actionByBack = action->reverse();
+        //auto seq = Sequence::create( action,actionByBack,nullptr);
+        //auto action1 = Sequence::create( seq, seq->reverse(), nullptr);
+        //particleSystem3D->runAction(action1);
+    }
     _layer3D->addChild(particleSystem3D,0);
     //particleSystem3D->save("E:\\liuliangWork\\cocos2d-x\\tests\\cpp-tests\\Resources\\Particle3D\\particle3Dtest.particle");
 }
@@ -133,7 +146,11 @@ void Camera3DTestDemo::SwitchViewCallback(Ref* sender,int viewType)
     }
     else if(_ViewType==1)
     {
-        Camera3D::getActiveCamera()->lookAt(Vec3(0, 50, -50)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
+        Camera3D::getActiveCamera()->lookAt(Vec3(0, 130, -130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
+    }
+    else  if(_ViewType==0)
+    {
+        Camera3D::getActiveCamera()->lookAt(Vec3(0, 130, -130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
     }
 }
 void Camera3DTestDemo::onEnter()
@@ -152,8 +169,13 @@ void Camera3DTestDemo::onEnter()
     _layer3D=layer3D;
     _ViewType = 0;	
     _curState=State_None;
-    addNewSpriteWithCoords( Vec3(0,0,0),"CameraTest/girl.c3b",true,true);
-    addNewParticleSystemWithCoords(Vec3(0, 0,0));
+    addNewSpriteWithCoords( Vec3(100,0,100),"CameraTest/orc.c3b",true,1.0,false);
+    addNewSpriteWithCoords( Vec3(100,0,-100),"CameraTest/orc.c3b",true,1.0,false);
+    addNewSpriteWithCoords( Vec3(-100,0,100),"CameraTest/orc.c3b",true,1.0,false);
+    addNewSpriteWithCoords( Vec3(-100,0,-100),"CameraTest/orc.c3b",true,1.0,false);
+    addNewSpriteWithCoords( Vec3(0,0,0),"CameraTest/girl.c3b",true,0.2,true);
+    addNewParticleSystemWithCoords(Vec3(0, 0,0),"CameraTest/particle3Dtest.particle",1.0,false);
+    addNewParticleSystemWithCoords(Vec3(0,0,0),"CameraTest/particle3Dtest1.particle",1.0,true);
     TTFConfig ttfConfig("fonts/arial.ttf", 20);
     auto label1 = Label::createWithTTF(ttfConfig,"zoomout");
     auto menuItem1 = MenuItemLabel::create(label1, CC_CALLBACK_1(Camera3DTestDemo::scaleCameraCallback,this,-2));
@@ -172,17 +194,17 @@ void Camera3DTestDemo::onEnter()
     auto menu = Menu::create(menuItem1,menuItem2,menuItem3,menuItem4,menuItem5,menuItem6,menuItem7,NULL);
 
     menu->setPosition(Vec2::ZERO);
-    menuItem1->setPosition( Vec2( s.width-50, 280 ) );
-    menuItem2->setPosition( Vec2( s.width-50, 240) );
-    menuItem3->setPosition( Vec2( s.width-50, 200) );
-    menuItem4->setPosition( Vec2( s.width-50, 160) );
-    menuItem5->setPosition( Vec2( s.width/2-200, 260) );
-    menuItem6->setPosition( Vec2( s.width/2-50, 260) );
-    menuItem7->setPosition( Vec2( s.width/2+100, 260) );
+    menuItem1->setPosition( Vec2( s.width-50, VisibleRect::top().y-50 ) );
+    menuItem2->setPosition( Vec2( s.width-50, VisibleRect::top().y-100) );
+    menuItem3->setPosition( Vec2( s.width-50, VisibleRect::top().y-150) );
+    menuItem4->setPosition( Vec2( s.width-50, VisibleRect::top().y-200) );
+    menuItem5->setPosition( Vec2(VisibleRect::left().x+100, VisibleRect::top().y-50) );
+    menuItem6->setPosition( Vec2(VisibleRect::left().x+100, VisibleRect::top().y -100));
+    menuItem7->setPosition( Vec2(VisibleRect::left().x+100, VisibleRect::top().y -150));
     addChild(menu, 0);
 
 
-    TTFConfig ttfCamera("fonts/arial.ttf", 10);
+  /*  TTFConfig ttfCamera("fonts/arial.ttf", 10);
     _labelRolePos = Label::createWithTTF(ttfCamera,"Role :Position: 0 , 0 , 0 ");
     Vec2 tAnchor(0,0);
     _labelRolePos->setAnchorPoint(tAnchor);
@@ -190,13 +212,13 @@ void Camera3DTestDemo::onEnter()
 
     _labelCameraPos = Label::createWithTTF(ttfCamera,"Camera : Eye Position: 0 , 0 , 0 , LookAt Position : 0 , 0 , 0 ");
     _labelCameraPos->setAnchorPoint(tAnchor);
-    _labelCameraPos->setPosition(10,220);
-    addChild(_labelRolePos, 0);
-    addChild(_labelCameraPos, 0);
+    _labelCameraPos->setPosition(10,220);*/
+   // addChild(_labelRolePos, 0);
+   // addChild(_labelCameraPos, 0);
     schedule(schedule_selector(Camera3DTestDemo::updatelabel), 0.0f);  
     _camera=Camera3D::createPerspective(60, (GLfloat)s.width/s.height, 1, 1000);
     _camera->retain();
-    _camera->lookAt(Vec3(0, 50, -50)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
+    _camera->lookAt(Vec3(0, 130, -130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
     _camera->setActiveCamera();
     DrawNode3D* line =DrawNode3D::create();
     _layer3D->addChild(_camera);
@@ -239,7 +261,7 @@ void Camera3DTestDemo::backCallback(Ref* sender)
     Director::getInstance()->replaceScene(s);
     s->release();
 }
-void Camera3DTestDemo::addNewSpriteWithCoords(Vec3 p,std::string fileName,bool playAnimation,bool bindCamera)
+void Camera3DTestDemo::addNewSpriteWithCoords(Vec3 p,std::string fileName,bool playAnimation,float scale,bool bindCamera)
 {
 
     auto sprite = Sprite3D::create(fileName);
@@ -273,10 +295,9 @@ void Camera3DTestDemo::addNewSpriteWithCoords(Vec3 p,std::string fileName,bool p
     if(bindCamera)
     {
         _sprite3D=sprite;
-        sprite->setScale(0.2);
-        sprite->setRotation3D(Vec3(0,0,0));
-
     }
+     sprite->setScale(scale);
+
 }
 void Camera3DTestDemo::onTouchesBegan(const std::vector<Touch*>& touches, cocos2d::Event  *event)
 {
@@ -415,7 +436,7 @@ void Camera3DTestDemo::updatelabel(float fDelta)
 {
     if(_sprite3D)
     {
-        auto  vPosition_sprite =_sprite3D->getPosition3D();
+      /*  auto  vPosition_sprite =_sprite3D->getPosition3D();
         char   szText[100];
         sprintf(szText,"Role :Position: %.2f , %.2f , %.2f ",vPosition_sprite.x,vPosition_sprite.y,vPosition_sprite.z);
         std::string str = szText;
@@ -426,7 +447,7 @@ void Camera3DTestDemo::updatelabel(float fDelta)
         auto  vPosition_LookAt	= Camera3D::getActiveCamera()->getLookPos();
         sprintf(szText,"Camera : Eye Position:  %.2f , %.2f , %.2f  , LookAt Position :  %.2f , %.2f , %.2f  ",vPosition_Eye.x,vPosition_Eye.y,vPosition_Eye.z,vPosition_LookAt.x,vPosition_LookAt.y,vPosition_LookAt.z);
         std::string str2 = szText;
-        _labelCameraPos->setString(str2);
+        _labelCameraPos->setString(str2);*/
         if( _ViewType==1)
         {
             updateState(fDelta);

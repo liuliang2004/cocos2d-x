@@ -39,6 +39,7 @@ NS_CC_BEGIN
 class GLProgramState;
 class Texture2D;
 class ParticleAffector;
+// particle Emitter config data
 struct ParEmitterConfig
 {  
     int totalParticles;
@@ -49,6 +50,7 @@ struct ParEmitterConfig
     float emitRate;   
     Vec3  boxSize; 
     float sphereRadius;
+    bool  followPosition;
     //life
     float life;
     float lifeVar; 
@@ -75,28 +77,35 @@ struct ParEmitterConfig
     char  textureName[32];
     int   blendType;
 };
+// particle Emitter Type 
 enum  EMITTYPE
 {
     EMIT_POINT,         
     EMIT_BOX,          
     EMIT_SPHERE,        
 };
+// particle direction Type 
 enum DIRECTION_TYPE
 {
     DIR_PLANAR,
     DIR_SPHERE,
 };
+// render billboard Type 
 enum BILLBOARD_TYPE
 {
     BILLBOARD,
-    BILLBOARD_SELF,
     XY,
+    BILLBOARD_SELF
 };
+/**
+Structure that contains the values of each particle
+*/
 struct Particle3D
 {
     int     index;          
     int     totalIndex;     
-    Vec3    position;       
+    Vec3    position;
+    Vec3    startPos;
     Vec3    velocity;
     float   scale;
     float   deltaScale;
@@ -107,6 +116,7 @@ struct Particle3D
     float   rotation;
     float   deltaRotation;
 };
+/** ParticleSystem3D: A particleSystem can be loaded from particle files, .particle, then can be drawed as particleSystem */
 class ParticleSystem3D : public Node , public BlendProtocol
 {
 public:	
@@ -141,6 +151,7 @@ public:
     //set texture
     void setTexture(const std::string& texFile);
     void setTexture(Texture2D* texture);
+     // overrides
     virtual void setBlendFunc(const BlendFunc &blendFunc) override;
     virtual const BlendFunc &getBlendFunc() const override;
     /**
@@ -158,35 +169,52 @@ public:
     bool load(const std::string& fileName);
     bool save(const std::string& szFile);
 private:
+      //update a billboard particle
     void   updateBillboardParticle(Particle3D* particle,const Vec3& newPosition);
+    //emitted particle
     void   emitterParticle(float dt);
+    //update all particle
     void   updateParticle(float dt);
+    //Add a particle to the emitter
     bool   addParticle();
     void   initParticleLife(Particle3D* particle);
     bool   isFull();
+     //Initializes a particle   direction
     void   initParticleDirection(Particle3D* particle);
+    //Initializes a particle   pos
     void   initParticlePos(Particle3D* particle);
-    void   initParticleColor(Particle3D* particle);;
+     //Initializes a particle   color
+    void   initParticleColor(Particle3D* particle);
+     //Initializes a particle   scale
     void   initParticleScale(Particle3D* particle);
+    //Initializes a particle   uv
     void   initParticleUV(Particle3D* particle);
+     //Initializes a particle   rotation
     void   initParticleRotation(Particle3D* particle);
+     /**
+     * Generates a scalar within the range defined by min and max.
+     */
     float  generateScalar(float min, float max);
+    /**
+    * load & save particle system .particle.
+    */
     bool load(tinyxml2::XMLElement* element);
     bool save(tinyxml2::XMLDocument* xmlDoc);
 protected:
-    Particle3D*         _particles;
-    ParEmitterConfig    _emitterConfig;
-    int                 _particleIdx;
-    int                 _particleCount;
-    float               _emitCounter;
+    Particle3D*         _particles;         //Array of particles
+    ParEmitterConfig    _emitterConfig;    //particle emitter config
+    int                 _particleIdx;      // particle idx
+    int                 _particleCount;    //Quantity of particles that are being simulated at the moment 
+    float               _emitCounter;   //! How many particles can be emitted per second
     bool                _started;
-    ParticleState       _state;
+    ParticleState       _state;        // particle system state
     float               _timeRunning; // particle system running time
-    Vec3                _cameraRight;
-    Vec3                _cameraUp;
-    V3F_C4B_T2F_Quad   *_quads;        // quads to be rendered
-    QuadCommand        _quadCommand;
-    Texture2D*         _texture;
+    Vec3                _cameraRight; // camera right dir
+    Vec3                _cameraUp;    // camera up dir
+    Vec3                _CamDir;      // camera lookat dir
+    V3F_C4B_T2F_Quad*   _quads;       // quads to be rendered
+    QuadCommand        _quadCommand;  // quad command
+    Texture2D*         _texture;       // quad texture
     BlendFunc          _blend;
     std::vector<ParticleAffector*> _parAffectors;
 };

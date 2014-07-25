@@ -62,8 +62,8 @@ public:
     // overrides
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
-    void addNewSpriteWithCoords(Vec3 p,std::string fileName,bool playAnimation=false,bool bindCamera=false);
-    void addNewParticleSystemWithCoords(Vec3 p);
+    void addNewSpriteWithCoords(Vec3 p,std::string fileName,bool playAnimation=false,float scale=1.0f,bool bindCamera=false);
+    void addNewParticleSystemWithCoords(Vec3 p,std::string fileName,float scale=1.0f,bool runAction=false);
     void onTouchesBegan(const std::vector<Touch*>& touches, cocos2d::Event  *event);
     void onTouchesMoved(const std::vector<Touch*>& touches, cocos2d::Event  *event);
     void onTouchesEnded(const std::vector<Touch*>& touches, cocos2d::Event  *event);
