@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "../testBasic.h"
 #include "../BaseTest.h"
 #include <string>
-
+#include "3d/CCCamera3D.h"
 namespace cocos2d {
     class Sprite3D;
     class Camera3D;
@@ -47,7 +47,12 @@ enum State
     State_RemoteAttack = 0x20,
     State_Attack = 0x40,
 };
-class Layer3D;
+enum class CameraType
+{
+    FreeCamera=0,
+    FirstCamera=1,
+    ThirdCamera=2,
+};
 class Camera3DTestDemo : public BaseTest
 {
 public:
@@ -59,64 +64,35 @@ public:
     void nextCallback(Ref* sender);
     void backCallback(Ref* sender);
     virtual void onEnter() override;
-
+    virtual void onExit() override;
     // overrides
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
     void addNewSpriteWithCoords(Vec3 p,std::string fileName,bool playAnimation=false,float scale=1.0f,bool bindCamera=false);
-    void addNewParticleSystemWithCoords(Vec3 p,std::string fileName,float scale=1.0f,bool runAction=false);
     void onTouchesBegan(const std::vector<Touch*>& touches, cocos2d::Event  *event);
     void onTouchesMoved(const std::vector<Touch*>& touches, cocos2d::Event  *event);
     void onTouchesEnded(const std::vector<Touch*>& touches, cocos2d::Event  *event);
     void scaleCameraCallback(Ref* sender,float value);
     void rotateCameraCallback(Ref* sender,float value);
-    void SwitchViewCallback(Ref* sender,int viewType);
-    void updatelabel(float fDelta);
+    void SwitchViewCallback(Ref* sender,CameraType cameraType);
+    void updateCamera(float fDelta);
     void move3D(float elapsedTime);
     void updateState(float elapsedTime);
     bool isState(unsigned int state,unsigned int bit) const;
     void reachEndCallBack();
 protected:
     std::string    _title;
-    Layer3D*      _layer3D;
-    Label*		  _labelRolePos;
-    Label*		  _labelCameraPos;
-    Sprite3D*     _sprite3D;
-    int		      _ViewType;
-    Vec3		  _EyePos;
-    Vec3          _targetPos;
-    unsigned int  _curState;
-    Camera3D*     _camera;
-    ParticleSystem3D* _particleSystem3D;
+    Layer*         _layer3D;
+    Sprite3D*      _sprite3D;
+    Vec3           _targetPos;
+    CameraType     _cameraType;
+    unsigned int   _curState;
+    Camera3D*      _camera;
     MoveTo* _moveAction;
 };
 class Camera3DTestScene : public TestScene
 {
 public:
     virtual void runThisTest();
-};
-class Layer3D : public cocos2d::Layer
-{
-public:
-    virtual bool init();  
-    virtual void visit(Renderer *renderer, const Mat4& parentTransform, uint32_t parentFlags);
-    void onBeginDraw();
-    void onEndDraw();
-    CREATE_FUNC(Layer3D);
-    GroupCommand _groupCommand;
-    CustomCommand _BeginCommand;
-    CustomCommand _EndCommand;
-    Director::Projection _directorProjection;
-};
-class ParticelSystem3DTestDemo : public BaseTest
-{
-public:
-    CREATE_FUNC(ParticelSystem3DTestDemo);
-    ParticelSystem3DTestDemo(void);
-    virtual ~ParticelSystem3DTestDemo(void);
-    // overrides
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-    virtual void onEnter() override;
 };
 #endif

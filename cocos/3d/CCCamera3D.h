@@ -23,23 +23,37 @@ THE SOFTWARE.
 ****************************************************************************/
 #ifndef _CCCAMERA3D_H__
 #define _CCCAMERA3D_H__
+
+#include "base/CCVector.h"
 #include "2d/CCNode.h"
+
 NS_CC_BEGIN
+
 class Ray;
+
+enum class CameraFlag
+{
+    CAMERA_DEFAULT = 1,
+    CAMERA_USER1 = 1 << 1,
+    CAMERA_USER2 = 1 << 2,
+    CAMERA_USER3 = 1 << 3,
+    CAMERA_USER4 = 1 << 4,
+    CAMERA_USER5 = 1 << 5,
+    CAMERA_USER6 = 1 << 6,
+    CAMERA_USER7 = 1 << 7,
+    CAMERA_USER8 = 1 << 8,
+};
+
 /**
 * Defines a camera .
 */
-class Camera3D :public Node
+class CC_DLL Camera3D :public Node
 {
 public:
     /**
-    * create camera
-    */
-    static Camera3D*	create();
-    /**
     * The type of camera.
     */
-    enum Type
+    enum class Type
     {
         PERSPECTIVE = 1,
         ORTHOGRAPHIC = 2
@@ -63,70 +77,63 @@ public:
     * @param nearPlane The near plane distance.
     * @param farPlane The far plane distance.
     */
-    static Camera3D*  createOrthographic(float zoomX, float zoomY, float aspectRatio, float nearPlane, float farPlane);
-    static Camera3D*  getActiveCamera();
+    static Camera3D*  createOrthographic(float zoomX, float zoomY, float nearPlane, float farPlane);
+
+    /**add camera to camera list*/
+    static void addCamera(Camera3D* camera);
+    /**remove camera*/
+    static void removeCamera(Camera3D* camera);
+    /**remove all cameras*/
+    static void removeAllCamera();
+    /**get camera count*/
+    static ssize_t getCameraCount() { return _cameras.size(); }
+    /**get camera by index*/
+    static Camera3D* getCameraByIndex(int index) { return _cameras.at(index); }
+    /**get camera by camera flag*/
+    static Camera3D* getCameraByFlag(CameraFlag flag);
     /**
     * Gets the type of camera.
     *
     * @return The camera type.
     */
     Camera3D::Type  getCameraType() const;
-    /* returns the Eye value of the Camera */
-    Vec3& getEyePos();
 
-    /* returns the Look value of the Camera */
-    Vec3& getLookPos();
-private:
-    Camera3D(float fieldOfView, float aspectRatio, float nearPlane, float farPlane);
-    Camera3D(float zoomX, float zoomY, float aspectRatio, float nearPlane, float farPlane);
-    Camera3D();
-    ~Camera3D();
-public:
+    /**get & set Camera flag*/
+    CameraFlag getCameraFlag() const { return (CameraFlag)_cameraFlag; }
+    void setCameraFlag(CameraFlag mask) { _cameraFlag = (unsigned short)mask; }
     /**
-    *
-    *
+    * Sets the position (X, Y, and Z) in its parent's coordinate system
     */
-    void lookAt(const Vec3& position, const Vec3& up, const Vec3& lookAtPos);
+    virtual void setPosition3D(const Vec3& position) override;
+    /**
+    * Creates a view matrix based on the specified input parameters.
+    *
+    * @param eyePosition The eye position.
+    * @param targetPosition The target's center position.
+    * @param up The up vector.
+    * @param dst A matrix to store the result in.
+    */
+    virtual void lookAt(const Vec3& up, const Vec3& target);
+
     /**
     * Gets the camera's projection matrix.
     *
     * @return The camera projection matrix.
     */
-    Mat4& getProjectionMatrix();
+    const Mat4& getProjectionMatrix();
     /**
     * Gets the camera's view matrix.
     *
     * @return The camera view matrix.
     */
-    Mat4& getViewMatrix();
-    /**
-    *  set the camera's projection View.
-    */
-    void applyProjection();
-    /**
-    * Sets the position (X, Y, and Z) in its parent's coordinate system
-    */
-    virtual void setPosition3D(const Vec3& position);
-    virtual void setRotation3D(const Vec3& rotation);
-    //set active camera 
-    bool setActiveCamera();
-    /**
-    * rotate camera
-    */
-    void rotate(const Vec3& axis, float angle);
-    /**
-     * Rotate along a specific line
-     * @param point a point at the line
-     * @param axis direction of the line
-     * @param angle angle to rotate
-     */
-    void rotateAlong(const Vec3& point,const Vec3& axis, float angle);
-    /**
-    * translate camera
-    */
-    void translate(const Vec3& vector);
-    void scale(float scale);
-    virtual const Mat4& getNodeToParentTransform() const;
+    const Mat4& getViewMatrix();
+
+    /**get view projection matrix*/
+    const Mat4& getViewProjectionMatrix();
+
+    /**set additional matrix for the projection matrix, it multiplys mat to projection matrix when called, used by WP8*/
+    void setAdditionalProjection(const Mat4& mat);
+
     /**
     * Convert the specified point of viewport from screenspace coordinate into the worldspace coordinate.
     */
@@ -135,11 +142,16 @@ public:
     * Ray from camera to the screen position
     */
     void calculateRayByLocationInView(Ray* ray, const Vec2& location);
-private:
+
+CC_CONSTRUCTOR_ACCESS:
+    Camera3D();
+    ~Camera3D();
+
+protected:
+
     Mat4 _projection;
     Mat4 _view;
-    Vec3 _lookAtPos;
-    Vec3 _realEyePos;
+    Mat4 _viewProjection;
     Vec3 _up;
     Camera3D::Type _type;
     float _fieldOfView;
@@ -147,10 +159,8 @@ private:
     float _aspectRatio;
     float _nearPlane;
     float _farPlane;
-    float _fCameraYawAngle;
-    float _fCameraPitchAngle;
-    Mat4  _rotation;
-    static Camera3D* _activeCamera;
+    unsigned short _cameraFlag; // camera flag
+    static Vector<Camera3D*> _cameras;
 };
 NS_CC_END
 #endif// __CCCAMERA3D_H_

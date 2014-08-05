@@ -31,6 +31,7 @@ THE SOFTWARE.
 // standard includes
 #include <string>
 
+#include "3d/CCCamera3D.h"
 #include "2d/CCDrawingPrimitives.h"
 #include "2d/CCScene.h"
 #include "2d/CCSpriteFrameCache.h"
@@ -166,6 +167,8 @@ bool Director::init(void)
 
 Director::~Director(void)
 {
+    Camera3D::removeAllCamera();
+    
     CCLOGINFO("deallocing Director: %p", this);
 
     CC_SAFE_RELEASE(_FPSLabel);
@@ -283,11 +286,40 @@ void Director::drawScene()
     }
 
     pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    
+    for (ssize_t i = 0; i < Camera3D::getCameraCount(); i++) {
+        _currentCamera = Camera3D::getCameraByIndex((int)i);
+        if (_currentCamera->getCameraFlag() == CameraFlag::CAMERA_DEFAULT)
+            continue;
+        
+        pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
+        loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION, _currentCamera->getViewProjectionMatrix());
+        
+        //visit the scene using current camera
+        _runningScene->visit(_renderer, Mat4::IDENTITY, false);
+        
+        _renderer->render();
+        
+        popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
+    }
+    _currentCamera = Camera3D::getCameraByFlag(CameraFlag::CAMERA_DEFAULT);
+    if (_currentCamera) //draw default camera
+    {
+        pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
+        loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION, _currentCamera->getViewProjectionMatrix());
+        
+        //visit the scene using current camera
+        _runningScene->visit(_renderer, Mat4::IDENTITY, false);
+        
+        _renderer->render();
+        
+        popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
+    }
+    _currentCamera = nullptr; //it is only valid during visit the scene
 
     // draw the scene
     if (_runningScene)
     {
-        _runningScene->visit(_renderer, Mat4::IDENTITY, false);
         _eventDispatcher->dispatchEvent(_eventAfterVisit);
     }
 
@@ -300,11 +332,12 @@ void Director::drawScene()
     if (_displayStats)
     {
         showStats();
+        _renderer->render();
     }
 
-    _renderer->render();
+    //_renderer->render();
     _eventDispatcher->dispatchEvent(_eventAfterDraw);
-
+    
     popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 
     _totalFrames++;
@@ -594,17 +627,27 @@ void Director::setProjection(Projection projection)
 {
     Size size = _winSizeInPoints;
 
+    auto camera = Camera3D::getCameraByFlag(CameraFlag::CAMERA_DEFAULT);
+    if (camera)
+        Camera3D::removeCamera(camera);
+
     setViewport();
 
     switch (projection)
     {
         case Projection::_2D:
         {
+            //create default camera
+            camera = Camera3D::createOrthographic(size.width, size.height, -1024, 1024);
+            Camera3D::addCamera(camera);
+            
             loadIdentityMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
 #if CC_TARGET_PLATFORM == CC_PLATFORM_WP8
             if(getOpenGLView() != nullptr)
             {
                 multiplyMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION, getOpenGLView()->getOrientationMatrix());
+                if (camera)
+                    camera->setAdditionalProjection(getOpenGLView()->getOrientationMatrix());
             }
 #endif
             Mat4 orthoMatrix;
@@ -617,17 +660,23 @@ void Director::setProjection(Projection projection)
         case Projection::_3D:
         {
             float zeye = this->getZEye();
+            
+            camera = Camera3D::createPerspective(60, (GLfloat)size.width/size.height, 10, zeye+size.height/2);
+            Camera3D::addCamera(camera);
 
             Mat4 matrixPerspective, matrixLookup;
 
             loadIdentityMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
-            
+
 #if CC_TARGET_PLATFORM == CC_PLATFORM_WP8
             //if needed, we need to add a rotation for Landscape orientations on Windows Phone 8 since it is always in Portrait Mode
             GLView* view = getOpenGLView();
+            
             if(getOpenGLView() != nullptr)
             {
                 multiplyMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION, getOpenGLView()->getOrientationMatrix());
+                if (camera)
+                    camera->setAdditionalProjection(getOpenGLView()->getOrientationMatrix());
             }
 #endif
             // issue #1334
@@ -640,6 +689,12 @@ void Director::setProjection(Projection projection)
             multiplyMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION, matrixLookup);
             
             loadIdentityMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+            
+            if (camera)
+            {
+                camera->setPosition3D(eye);
+                camera->lookAt(up, center);
+            }
             break;
         }
 
