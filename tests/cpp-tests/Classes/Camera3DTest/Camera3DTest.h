@@ -34,6 +34,7 @@ namespace cocos2d {
     class Camera3D;
     class Delay;
     class Ray;
+    class ParticleSystem3D;
 }
 enum State
 {
@@ -74,6 +75,7 @@ public:
     void move3D(float elapsedTime);
     void updateState(float elapsedTime);
     bool isState(unsigned int state,unsigned int bit) const;
+    void reachEndCallBack();
 protected:
     std::string    _title;
     Layer3D*      _layer3D;
@@ -85,6 +87,8 @@ protected:
     Vec3          _targetPos;
     unsigned int  _curState;
     Camera3D*     _camera;
+    ParticleSystem3D* _particleSystem3D;
+    MoveTo* _moveAction;
 };
 class Camera3DTestScene : public TestScene
 {
@@ -103,5 +107,16 @@ public:
     CustomCommand _BeginCommand;
     CustomCommand _EndCommand;
     Director::Projection _directorProjection;
+};
+class ParticelSystem3DTestDemo : public BaseTest
+{
+public:
+    CREATE_FUNC(ParticelSystem3DTestDemo);
+    ParticelSystem3DTestDemo(void);
+    virtual ~ParticelSystem3DTestDemo(void);
+    // overrides
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+    virtual void onEnter() override;
 };
 #endif

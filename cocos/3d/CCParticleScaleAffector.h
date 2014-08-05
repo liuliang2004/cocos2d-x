@@ -22,41 +22,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#ifndef __CCPARTICLEAFFECTOR_H__
-#define __CCPARTICLEAFFECTOR_H__
-
-#include <vector>
-#include "base/CCVector.h"
-#include "base/ccTypes.h"
-#include "base/CCProtocols.h"
-#include "2d/CCNode.h"
-namespace tinyxml2
-{
-    class XMLElement;
-    class XMLDocument; 
-}
+#ifndef __CCPARTICLESCALEAFFECTOR_H__
+#define __CCPARTICLESCALEAFFECTOR_H__
+#include "3d/CCParticleAffector.h"
 NS_CC_BEGIN
-struct Particle3D;
-class ParticleSystem3D;
+struct ScaleAffectorConfig
+{
+    int   type;
+    float endScale;	
+};
 /**
-Base class of particle Affector
-A class affect the particle
+Defines particle scale Affector
+It is a compulsory component for particle system
+It updates particle scale
 */
-class ParticleAffector 
+class ParticleScaleAffector  : public ParticleAffector
 {
 public:
-    ParticleAffector(ParticleSystem3D* system);
-    virtual ~ParticleAffector();
-    //init particle affector
-    virtual void initAffector(Particle3D* p){}
-    //update particle affector
-    virtual void updateAffector(Particle3D* p,float dt){}
-    //load particle affector data
+    ParticleScaleAffector(ParticleSystem3D* system);
+    virtual ~ParticleScaleAffector();
+     //init particle scale affector
+    virtual void initAffector(Particle3D* p);
+    virtual void updateAffector(Particle3D* p,float dt);
     virtual bool load(tinyxml2::XMLElement* element);
-    //save particle affector data
     virtual bool save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc);
-protected:
-    ParticleSystem3D* _parSystem;
+private:
+    ScaleAffectorConfig _scaleAffectorConfig;
 };
 NS_CC_END
 #endif // __SPRITE3D_H_

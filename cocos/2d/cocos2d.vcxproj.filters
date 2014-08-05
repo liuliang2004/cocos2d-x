@@ -607,13 +607,43 @@
     <ClCompile Include="..\3d\CCCamera3D.cpp">
       <Filter>3d</Filter>
     </ClCompile>
-  <ClCompile Include="..\3d\CCRay.cpp">
+    <ClCompile Include="..\3d\CCRay.cpp">
       <Filter>3d</Filter>
     </ClCompile>
     <ClCompile Include="..\3d\CCParticleSystem3D.cpp">
       <Filter>3d</Filter>
     </ClCompile>
     <ClCompile Include="..\3d\CCParticleAffector.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleEmitter.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleRender.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticlePointEmitter.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleBillboardRender.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleBoxEmitter.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleColorAffector.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleRotationAffector.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleScaleAffector.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCParticleMeshRender.cpp">
+      <Filter>3d</Filter>
+    </ClCompile>
+    <ClCompile Include="..\3d\CCUBJsonReader.cpp">
       <Filter>3d</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1253,6 +1283,36 @@
       <Filter>3d</Filter>
     </ClInclude>
     <ClInclude Include="..\3d\CCParticleAffector.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleEmitter.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleRender.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticlePointEmitter.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleBillboardRender.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleBoxEmitter.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleColorAffector.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleRotationAffector.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleScaleAffector.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCParticleMeshRender.h">
+      <Filter>3d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\3d\CCUBJsonReader.h">
       <Filter>3d</Filter>
     </ClInclude>
   </ItemGroup>

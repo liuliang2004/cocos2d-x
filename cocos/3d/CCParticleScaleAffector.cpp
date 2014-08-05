@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "3d/CCParticleAffector.h"
+#include "3d/CCParticleScaleAffector.h"
 #include "base/CCDirector.h"
 #include "base/CCPlatformMacros.h"
 #include "base/ccMacros.h"
@@ -37,20 +37,49 @@ THE SOFTWARE.
 #include "tinyxml2.h"
 NS_CC_BEGIN
 
-ParticleAffector::ParticleAffector(ParticleSystem3D* system):
-    _parSystem(system)
+ParticleScaleAffector::ParticleScaleAffector(ParticleSystem3D* system):
+    ParticleAffector(system)
 {
 }
-ParticleAffector::~ParticleAffector()
+ParticleScaleAffector::~ParticleScaleAffector()
 {
 
 }
-bool ParticleAffector::load(tinyxml2::XMLElement* element)
+void ParticleScaleAffector::initAffector(Particle3D* p)
 {
+    p->deltaScale = (_scaleAffectorConfig.endScale - p->scale) / p->timeToLive;
+}
+void ParticleScaleAffector::updateAffector(Particle3D* p,float dt)
+{
+    p->scale+= p->deltaScale*dt;
+}
+bool ParticleScaleAffector::load(tinyxml2::XMLElement* element)
+{
+    const tinyxml2:: XMLAttribute*	curAttribute=element->FirstAttribute();
+    while (curAttribute) 
+    {  
+
+        if(0==strcmp(curAttribute->Name(),"type"))
+        {
+            curAttribute->QueryIntValue(&_scaleAffectorConfig.type);
+        }
+        else if(0==strcmp(curAttribute->Name(),"endScale"))
+        {
+            curAttribute->QueryFloatValue(&_scaleAffectorConfig.endScale);
+        }
+        curAttribute = curAttribute->Next();   
+    }
     return true;
 }
-bool ParticleAffector::save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc)
+bool ParticleScaleAffector::save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc)
 {
+    tinyxml2::XMLElement *pAffectElement = xmlDoc->NewElement("ParticleScaleAffector");
+    if(pAffectElement)
+    {
+        pAffectElement->SetAttribute("type",_scaleAffectorConfig.type);
+        pAffectElement->SetAttribute("endScale",_scaleAffectorConfig.endScale);
+        element->LinkEndChild(pAffectElement);
+    }
     return true;
 }
 

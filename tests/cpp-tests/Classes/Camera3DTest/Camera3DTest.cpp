@@ -30,6 +30,8 @@ THE SOFTWARE.
 #include "3d/CCParticleSystem3D.h"
 #include "3d/CCDrawNode3D.h"
 #include "3d/CCRay.h"
+#include "3d/CCAttachNode.h"
+#include "3d/CCUBJsonReader.h"
 enum
 {
     IDC_NEXT = 100,
@@ -41,13 +43,16 @@ static int sceneIdx = -1;
 
 static std::function<Layer*()> createFunctions[] =
 {
-    CL(Camera3DTestDemo)
+    CL(Camera3DTestDemo),
+    CL(ParticelSystem3DTestDemo)
 };
 #define MAX_LAYER    (sizeof(createFunctions) / sizeof(createFunctions[0]))
 
 static Layer* nextSpriteTestAction()
 {
-    auto layer = (createFunctions[0])();
+    sceneIdx++;
+    sceneIdx = sceneIdx % MAX_LAYER;
+    auto layer = (createFunctions[sceneIdx])();
     return layer;
 }
 
@@ -58,13 +63,13 @@ static Layer* backSpriteTestAction()
     if( sceneIdx < 0 )
         sceneIdx += total;
 
-    auto layer = (createFunctions[0])();
+    auto layer = (createFunctions[sceneIdx])();
     return layer;
 }
 
 static Layer* restartSpriteTestAction()
 {
-    auto layer = (createFunctions[0])();
+    auto layer = (createFunctions[sceneIdx])();
     return layer;
 }
 
@@ -77,7 +82,7 @@ static Layer* restartSpriteTestAction()
 Camera3DTestDemo::Camera3DTestDemo(void)
     : BaseTest()
 {
-
+    _particleSystem3D=nullptr;
 }
 Camera3DTestDemo::~Camera3DTestDemo(void)
 {
@@ -85,25 +90,39 @@ Camera3DTestDemo::~Camera3DTestDemo(void)
 
 void Camera3DTestDemo::addNewParticleSystemWithCoords(Vec3 p,std::string fileName,float scale,bool runAction)
 {
-    auto particleSystem3D = ParticleSystem3D::create(fileName);
+    ParticleSystem3D* particleSystem3D = ParticleSystem3D::create(fileName);
     particleSystem3D->setPosition3D(p);
     particleSystem3D->setScale(scale);
     particleSystem3D->start();
     if(runAction)
     {
+        _particleSystem3D=particleSystem3D;
         /*ccBezierConfig bezier;
         bezier.controlPoint_1 = Vec2(0,0);
         bezier.controlPoint_2 = Vec2(100, 100);
         bezier.endPosition    = Vec2(200,0);
         ActionInterval* action= action = BezierTo::create(3, bezier);*/
-        //auto action = MoveTo::create(3, Vec2(200, 0));;
-        //auto actionByBack = action->reverse();
-        //auto seq = Sequence::create( action,actionByBack,nullptr);
-        //auto action1 = Sequence::create( seq, seq->reverse(), nullptr);
-        //particleSystem3D->runAction(action1);
+        _moveAction = MoveTo::create(3, Vec2(100,0));
+        _moveAction->retain();
+        auto seq = Sequence::create(_moveAction, CallFunc::create(CC_CALLBACK_0(Camera3DTestDemo::reachEndCallBack, this)), nullptr);
+        particleSystem3D->runAction(seq);
+
     }
     _layer3D->addChild(particleSystem3D,0);
     //particleSystem3D->save("E:\\liuliangWork\\cocos2d-x\\tests\\cpp-tests\\Resources\\Particle3D\\particle3Dtest.particle");
+}
+void Camera3DTestDemo::reachEndCallBack()
+{
+    if(_particleSystem3D)
+    {
+        _particleSystem3D->stopAllActions();
+        auto inverse = (MoveTo*)_moveAction->reverse();
+        inverse->retain();
+        _moveAction->release();
+        _moveAction = inverse;
+        auto seq = Sequence::create(_moveAction, CallFunc::create(CC_CALLBACK_0(Camera3DTestDemo::reachEndCallBack, this)), nullptr);
+        _particleSystem3D->runAction(seq);
+    }
 }
 std::string Camera3DTestDemo::title() const
 {
@@ -146,11 +165,11 @@ void Camera3DTestDemo::SwitchViewCallback(Ref* sender,int viewType)
     }
     else if(_ViewType==1)
     {
-        Camera3D::getActiveCamera()->lookAt(Vec3(0, 130, -130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
+        Camera3D::getActiveCamera()->lookAt(Vec3(0, 130, 130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
     }
     else  if(_ViewType==0)
     {
-        Camera3D::getActiveCamera()->lookAt(Vec3(0, 130, -130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
+        Camera3D::getActiveCamera()->lookAt(Vec3(0, 130, 130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
     }
 }
 void Camera3DTestDemo::onEnter()
@@ -169,13 +188,14 @@ void Camera3DTestDemo::onEnter()
     _layer3D=layer3D;
     _ViewType = 0;	
     _curState=State_None;
-    addNewSpriteWithCoords( Vec3(100,0,100),"CameraTest/orc.c3b",true,1.0,false);
-    addNewSpriteWithCoords( Vec3(100,0,-100),"CameraTest/orc.c3b",true,1.0,false);
-    addNewSpriteWithCoords( Vec3(-100,0,100),"CameraTest/orc.c3b",true,1.0,false);
-    addNewSpriteWithCoords( Vec3(-100,0,-100),"CameraTest/orc.c3b",true,1.0,false);
+    //addNewSpriteWithCoords( Vec3(100,0,100),"CameraTest/orc.c3b",true,1.0,false);
+    //addNewSpriteWithCoords( Vec3(100,0,-100),"CameraTest/orc.c3b",true,1.0,false);
+    //addNewSpriteWithCoords( Vec3(-100,0,100),"CameraTest/orc.c3b",true,1.0,false);
+    //addNewSpriteWithCoords( Vec3(-100,0,-100),"CameraTest/orc.c3b",true,1.0,false);
     addNewSpriteWithCoords( Vec3(0,0,0),"CameraTest/girl.c3b",true,0.2,true);
-    addNewParticleSystemWithCoords(Vec3(0, 0,0),"CameraTest/particle3Dtest.particle",1.0,false);
-    addNewParticleSystemWithCoords(Vec3(0,0,0),"CameraTest/particle3Dtest1.particle",1.0,true);
+    //addNewParticleSystemWithCoords(Vec3(-100,0,0),"CameraTest/particle3Dtest1.particle",1.0,true);
+   // addNewParticleSystemWithCoords(Vec3(0,0,0),"CameraTest/particle3Dtest.particle",1.0,false);
+   // addNewParticleSystemWithCoords(Vec3(0,0,0),"CameraTest/particle3Dtest2.particle",1.0,false);
     TTFConfig ttfConfig("fonts/arial.ttf", 20);
     auto label1 = Label::createWithTTF(ttfConfig,"zoomout");
     auto menuItem1 = MenuItemLabel::create(label1, CC_CALLBACK_1(Camera3DTestDemo::scaleCameraCallback,this,-2));
@@ -204,7 +224,8 @@ void Camera3DTestDemo::onEnter()
     addChild(menu, 0);
 
 
-  /*  TTFConfig ttfCamera("fonts/arial.ttf", 10);
+
+    /*  TTFConfig ttfCamera("fonts/arial.ttf", 10);
     _labelRolePos = Label::createWithTTF(ttfCamera,"Role :Position: 0 , 0 , 0 ");
     Vec2 tAnchor(0,0);
     _labelRolePos->setAnchorPoint(tAnchor);
@@ -213,15 +234,45 @@ void Camera3DTestDemo::onEnter()
     _labelCameraPos = Label::createWithTTF(ttfCamera,"Camera : Eye Position: 0 , 0 , 0 , LookAt Position : 0 , 0 , 0 ");
     _labelCameraPos->setAnchorPoint(tAnchor);
     _labelCameraPos->setPosition(10,220);*/
-   // addChild(_labelRolePos, 0);
-   // addChild(_labelCameraPos, 0);
+    // addChild(_labelRolePos, 0);
+    // addChild(_labelCameraPos, 0);
     schedule(schedule_selector(Camera3DTestDemo::updatelabel), 0.0f);  
     _camera=Camera3D::createPerspective(60, (GLfloat)s.width/s.height, 1, 1000);
     _camera->retain();
-    _camera->lookAt(Vec3(0, 130, -130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
+    _camera->lookAt(Vec3(0, 130, 130)+_sprite3D->getPosition3D(),Vec3(0, 1, 0),_sprite3D->getPosition3D());
     _camera->setActiveCamera();
     DrawNode3D* line =DrawNode3D::create();
     _layer3D->addChild(_camera);
+
+    timeval tv; 
+    gettimeofday(&tv, NULL);//获取系统时间
+    float lastTime= tv.tv_sec * 1000 + tv.tv_usec / 1000;  
+    for(int i = 0; i <10 ; i++)
+    {
+        std::string fileName = "CameraTest/girl.c3t";
+        auto sprite = Sprite3D::create(fileName);
+        sprite->setScale(3.f);
+        //sprite->setTexture("Sprite3DTest/boss.png");
+        _layer3D->addChild(sprite);
+    }
+    gettimeofday(&tv, NULL);//获取系统时间
+    float curTime= tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    float dt= curTime-lastTime;
+    CCLog("load meshTime1:%f" ,dt);
+    gettimeofday(&tv, NULL);//获取系统时间
+    lastTime= tv.tv_sec * 1000 + tv.tv_usec / 1000;  
+    for(int i = 0; i <10 ; i++)
+    {
+        std::string fileName = "CameraTest/girl.c3b";
+        auto sprite1 = Sprite3D::create(fileName);
+        sprite1->setScale(3.f);
+       // sprite1->setTexture("Sprite3DTest/boss.png");
+        _layer3D->addChild(sprite1);
+        gettimeofday(&tv, NULL);//获取系统时间   
+    }
+    curTime= tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    dt= curTime-lastTime;
+    CCLog("load meshTime2:%f" ,dt);
     //draw x
     for( int j =-20; j<=20 ;j++)
     {
@@ -236,8 +287,10 @@ void Camera3DTestDemo::onEnter()
     line->drawLine(Vec3(0, -50, 0),Vec3(0,0,0),Color4F(0,0.5,0,1));
     line->drawLine(Vec3(0, 0, 0),Vec3(0,50,0),Color4F(0,1,0,1));
     _layer3D->addChild(line);
-}
 
+
+}
+ 
 void Camera3DTestDemo::restartCallback(Ref* sender)
 {
     auto s = new Camera3DTestScene();
@@ -290,13 +343,22 @@ void Camera3DTestDemo::addNewSpriteWithCoords(Vec3 p,std::string fileName,bool p
             }
             animate->setSpeed(inverse ? -speed : speed);
             sprite->runAction(RepeatForever::create(animate));
+            //auto sp = Sprite3D::create("Sprite3DTest/axe.c3b");
+            // sprite->getAttachNode("Bip001 R Hand")->addChild(sp);
         }
     }
     if(bindCamera)
     {
         _sprite3D=sprite;
+       // auto sp = Sprite3D::create("Sprite3DTest/axe.c3b");
+      //  sp->setScale(3);
+        //sprite->getAttachNode("Bip001 R Hand")->addChild(sp);
+        //ParticleSystem3D* particleSystem3D = ParticleSystem3D::create("CameraTest/particle3Dtest1.particle");
+        //particleSystem3D->start();
+        //sprite->getAttachNode("Bip001 R Hand")->addChild(particleSystem3D);
+
     }
-     sprite->setScale(scale);
+    sprite->setScale(scale);
 
 }
 void Camera3DTestDemo::onTouchesBegan(const std::vector<Touch*>& touches, cocos2d::Event  *event)
@@ -372,8 +434,9 @@ void Camera3DTestDemo::move3D(float elapsedTime)
         _sprite3D->setPosition3D(curPos);
         if(_camera)
         {
+            offset.x=-offset.x;
+            offset.z=-offset.z;
             Camera3D::getActiveCamera()->translate(offset);
-
         }
 
     }
@@ -436,7 +499,7 @@ void Camera3DTestDemo::updatelabel(float fDelta)
 {
     if(_sprite3D)
     {
-      /*  auto  vPosition_sprite =_sprite3D->getPosition3D();
+        /*  auto  vPosition_sprite =_sprite3D->getPosition3D();
         char   szText[100];
         sprintf(szText,"Role :Position: %.2f , %.2f , %.2f ",vPosition_sprite.x,vPosition_sprite.y,vPosition_sprite.z);
         std::string str = szText;
@@ -575,4 +638,26 @@ void Layer3D::onEndDraw()
 {
     Director *director = Director::getInstance();
     director->setProjection(_directorProjection);
+}
+ParticelSystem3DTestDemo::ParticelSystem3DTestDemo(void)
+    : BaseTest()
+{
+
+}
+ParticelSystem3DTestDemo::~ParticelSystem3DTestDemo(void)
+{
+}
+std::string ParticelSystem3DTestDemo::title() const
+{
+    return "Testing ParticleSystem3D";
+}
+
+std::string ParticelSystem3DTestDemo::subtitle() const
+{
+    return "";
+}
+
+void ParticelSystem3DTestDemo::onEnter()
+{
+    BaseTest::onEnter();
 }

@@ -35,7 +35,7 @@
 
 #include "json/document.h"
 #include "CCBundleReader.h"
-
+#include "CCUBJsonReader.h"
 NS_CC_BEGIN
 class Animation3D;
 class Data;
@@ -103,6 +103,7 @@ protected:
     
     bool loadAnimationDataJson(Animation3DData* animationdata);
 
+    //////////////////////////////////////////////////////////////////
     /**
      * load data in binary
      * @param path The c3b file path
@@ -135,6 +136,13 @@ protected:
      */
     bool loadAnimationDataBinary(Animation3DData* animationdata);
 
+    //////////////////////////////////////////////////////////////////
+    bool loadGDX(const std::string& path);
+    bool loadMeshDataGDX(MeshData* meshdata);
+    bool loadMaterialDataGDX(MaterialData* materialdata);
+    bool loadSkinDataGDX(SkinData* skindata);
+    bool loadAnimationDataGDX(Animation3DData* animationdata);
+    
 protected:
     /**
      * get define data type
@@ -148,6 +156,7 @@ protected:
      */
     unsigned int parseGLProgramAttribute(const std::string& str);
 
+    unsigned int parseVertexAttributeSizeInFloat(const std::string& str);
     /*
      * get model path
      * @param str Full path of model file
@@ -181,6 +190,8 @@ protected:
     // for binary reading
     Data* _binaryBuffer;
     BundleReader _binaryReader;
+    UBJsonReader _ubJsonReader;
+    const rapidjson::Value* _ubJsonData;
     unsigned int _referenceCount;
     Reference* _references;
 

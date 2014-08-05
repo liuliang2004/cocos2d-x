@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-#include "3d/CCParticleAffector.h"
+#include "3d/CCParticleRotationAffector.h"
 #include "base/CCDirector.h"
 #include "base/CCPlatformMacros.h"
 #include "base/ccMacros.h"
@@ -37,20 +37,49 @@ THE SOFTWARE.
 #include "tinyxml2.h"
 NS_CC_BEGIN
 
-ParticleAffector::ParticleAffector(ParticleSystem3D* system):
-    _parSystem(system)
+ParticleRotationAffector::ParticleRotationAffector(ParticleSystem3D* system):
+    ParticleAffector(system)
 {
 }
-ParticleAffector::~ParticleAffector()
+ParticleRotationAffector::~ParticleRotationAffector()
 {
 
 }
-bool ParticleAffector::load(tinyxml2::XMLElement* element)
+void ParticleRotationAffector::initAffector(Particle3D* p)
 {
+    p->deltaRotation = (_rotAffectorConfig.rotationEnd - p->rotation) / p->timeToLive;
+
+}
+void ParticleRotationAffector::updateAffector(Particle3D* p,float dt)
+{
+    p->rotation+=p->deltaRotation*dt;
+}
+bool ParticleRotationAffector::load(tinyxml2::XMLElement* element)
+{
+    const tinyxml2:: XMLAttribute*	curAttribute=element->FirstAttribute();
+    while (curAttribute) 
+    {  
+        if(0==strcmp(curAttribute->Name(),"type"))
+        {
+            curAttribute->QueryIntValue(&_rotAffectorConfig.type);
+        }
+        else if(0==strcmp(curAttribute->Name(),"rotationEnd"))
+        {
+            curAttribute->QueryIntValue(&_rotAffectorConfig.rotationEnd);
+        }
+        curAttribute = curAttribute->Next();  
+    }
     return true;
 }
-bool ParticleAffector::save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc)
+bool ParticleRotationAffector::save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc)
 {
+    tinyxml2::XMLElement *pAffectElement = xmlDoc->NewElement("ParticleRotationAffector");
+    if(pAffectElement)
+    {
+        pAffectElement->SetAttribute("type",_rotAffectorConfig.type);
+        pAffectElement->SetAttribute("rotationEnd",_rotAffectorConfig.rotationEnd);
+        element->LinkEndChild(pAffectElement);
+    }
     return true;
 }
 

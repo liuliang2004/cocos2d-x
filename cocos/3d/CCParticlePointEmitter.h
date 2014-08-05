@@ -21,42 +21,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-
-#ifndef __CCPARTICLEAFFECTOR_H__
-#define __CCPARTICLEAFFECTOR_H__
-
-#include <vector>
-#include "base/CCVector.h"
-#include "base/ccTypes.h"
-#include "base/CCProtocols.h"
+#ifndef __CCPARTICLPOINTEMITTER_H__
+#define __CCPARTICLPOINTEMITTER_H__
 #include "2d/CCNode.h"
-namespace tinyxml2
-{
-    class XMLElement;
-    class XMLDocument; 
-}
+#include "3d/CCParticleEmitter.h"
 NS_CC_BEGIN
-struct Particle3D;
-class ParticleSystem3D;
-/**
-Base class of particle Affector
-A class affect the particle
-*/
-class ParticleAffector 
+class ParticlePointEmitter   : public ParticleEmitter
 {
-public:
-    ParticleAffector(ParticleSystem3D* system);
-    virtual ~ParticleAffector();
-    //init particle affector
-    virtual void initAffector(Particle3D* p){}
-    //update particle affector
-    virtual void updateAffector(Particle3D* p,float dt){}
-    //load particle affector data
-    virtual bool load(tinyxml2::XMLElement* element);
-    //save particle affector data
-    virtual bool save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc);
-protected:
-    ParticleSystem3D* _parSystem;
+public:	
+    ParticlePointEmitter(ParticleSystem3D* system);
+    virtual ~ParticlePointEmitter();
+    //Initializes a particle   pos
+    virtual void   initParticlePos(Particle3D* particle);
+    virtual bool   save(tinyxml2::XMLElement* element,tinyxml2::XMLDocument* xmlDoc);
+
 };
 NS_CC_END
-#endif // __SPRITE3D_H_
+#endif 

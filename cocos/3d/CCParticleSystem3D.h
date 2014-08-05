@@ -39,41 +39,39 @@ NS_CC_BEGIN
 class GLProgramState;
 class Texture2D;
 class ParticleAffector;
-// particle Emitter config data
-struct ParEmitterConfig
+class ParticleEmitter;
+class ParticleRender;
+// particle System config data
+struct ParSystemConfig
 {  
     int totalParticles;
-    float emitDelay;    
-    float emitDuration; 
-    int   emitType;
-    Vec3  emitPos;
-    float emitRate;   
-    Vec3  boxSize; 
-    float sphereRadius;
-    bool  followPosition;
-    //life
-    float life;
-    float lifeVar; 
-    //color
-    Vec4  startColor;
-    Vec4  startColorVar;
-    //velocity
-    int   dirType; 
-    Vec3  velocityAxis;
-    float startSpeed; 
-    float startSpeedVar;
-    //scale
-    float startScale; 
-    float startScaleVar;
+    //float emitDelay;    
+    //float emitDuration; 
+    //int   emitType;
+    //Vec3  emitPos;
+    //float emitRate;   
+    //Vec3  boxSize; 
+    //float sphereRadius;
+    ////life
+    //float life;
+    //float lifeVar; 
+    ////color
+    //Vec4  startColor;
+    //Vec4  startColorVar;
+    ////velocity
+    //int   dirType; 
+    //Vec3  velocityAxis;
+    //float startSpeed; 
+    //float startSpeedVar;
+    ////scale
+    //float startScale; 
+    //float startScaleVar;
 
-    int startRotation;
-    int startRotationVar;
-    //uv
-    Vec4  uvRect;
-    //render
-    int   renderType;
-    Vec2  billboardSize; 
-    int   billboardType;
+    //int startRotation;
+    //int startRotationVar;
+    ////uv
+    //Vec4  uvRect;
+    //render      0 billboard 1 mesh
     char  textureName[32];
     int   blendType;
 };
@@ -124,21 +122,7 @@ public:
     static ParticleSystem3D * create();
     ParticleSystem3D();
     virtual ~ParticleSystem3D();
-    /**
-    * particle state.
-    */
-    enum ParticleState
-    {
-        STOP,
-        RUNNING,
-        PAUSE,
-    };
-    void  setTotalParticles(int tp);
     virtual void  onEnter() override;
-    /**
-    * is particle system start ?
-    */
-    bool isStarted() const;
     /**
     * particle system control.
     */
@@ -151,7 +135,8 @@ public:
     //set texture
     void setTexture(const std::string& texFile);
     void setTexture(Texture2D* texture);
-     // overrides
+    Texture2D* getTexture()const;
+    // overrides
     virtual void setBlendFunc(const BlendFunc &blendFunc) override;
     virtual const BlendFunc &getBlendFunc() const override;
     /**
@@ -163,38 +148,25 @@ public:
     * remove particle system Affector
     */
     void removeAffector(ParticleAffector* affector);
+    void setParticleEmitter(ParticleEmitter* parEmitter);
+    void setParticleRender(ParticleRender* parRender);
     /**
     * load & save particle system .particle.
     */
     bool load(const std::string& fileName);
     bool save(const std::string& szFile);
+    void  setTotalParticles(int tp);
+    int   getTotalParticle()const;
+    Particle3D* getParticle(int index)const;
 private:
-      //update a billboard particle
-    void   updateBillboardParticle(Particle3D* particle,const Vec3& newPosition);
-    //emitted particle
-    void   emitterParticle(float dt);
     //update all particle
     void   updateParticle(float dt);
     //Add a particle to the emitter
     bool   addParticle();
-    void   initParticleLife(Particle3D* particle);
+    //Initializes a particle
+    void   initParticle(Particle3D* particle);
+    void   emitterParticle(float dt);
     bool   isFull();
-     //Initializes a particle   direction
-    void   initParticleDirection(Particle3D* particle);
-    //Initializes a particle   pos
-    void   initParticlePos(Particle3D* particle);
-     //Initializes a particle   color
-    void   initParticleColor(Particle3D* particle);
-     //Initializes a particle   scale
-    void   initParticleScale(Particle3D* particle);
-    //Initializes a particle   uv
-    void   initParticleUV(Particle3D* particle);
-     //Initializes a particle   rotation
-    void   initParticleRotation(Particle3D* particle);
-     /**
-     * Generates a scalar within the range defined by min and max.
-     */
-    float  generateScalar(float min, float max);
     /**
     * load & save particle system .particle.
     */
@@ -202,20 +174,16 @@ private:
     bool save(tinyxml2::XMLDocument* xmlDoc);
 protected:
     Particle3D*         _particles;         //Array of particles
-    ParEmitterConfig    _emitterConfig;    //particle emitter config
+    ParticleEmitter*    _particleEmitter;
+    ParticleRender*     _particleRender;
+    ParSystemConfig     _parSystemConfig;    //particle emitter config
     int                 _particleIdx;      // particle idx
     int                 _particleCount;    //Quantity of particles that are being simulated at the moment 
-    float               _emitCounter;   //! How many particles can be emitted per second
     bool                _started;
-    ParticleState       _state;        // particle system state
-    float               _timeRunning; // particle system running time
-    Vec3                _cameraRight; // camera right dir
-    Vec3                _cameraUp;    // camera up dir
-    Vec3                _CamDir;      // camera lookat dir
-    V3F_C4B_T2F_Quad*   _quads;       // quads to be rendered
-    QuadCommand        _quadCommand;  // quad command
-    Texture2D*         _texture;       // quad texture
-    BlendFunc          _blend;
+    float               _timeRunning;
+    float               _emitCounter;
+    Texture2D*          _texture;       // quad texture
+    BlendFunc           _blend;
     std::vector<ParticleAffector*> _parAffectors;
 };
 NS_CC_END

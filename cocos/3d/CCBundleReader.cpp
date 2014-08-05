@@ -79,7 +79,6 @@ ssize_t BundleReader::read(void* ptr, ssize_t size, ssize_t count)
 
     return validCount;
 }
-
 char* BundleReader::readLine(int num,char* line)
 {
     if (!m_buffer)
