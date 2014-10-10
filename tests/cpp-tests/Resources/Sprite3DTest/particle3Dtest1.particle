@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<particleSystem totalParticles="400"   textureName="Sprite3DTest/22.png">
+    <ParticlePointEmitter emitDelay="0.0" emitDuration="-1"  emitRate="200" life="1.8" lifeVar="0.25" startColorR="1" startColorG="1" startColorB="1" startColorA="1" startColorVarR="0" startColorVarG="0" startColorVarB="0" startColorVarA="0" dirType="1" velocityAxisX="0" velocityAxisY="1" velocityAxisZ="0" startSpeed="15" startSpeedVar="5" startScale="1" startScaleVar="1" startRotation="0" startRotationVar="0" uvRectLeft="0" uvRectTop="0" uvRectRight="1" uvRectBottom="1"/>
+    <ParticleBillboardRender  billboardSizeX="8" billboardSizeY="8" billboardType="2"/>
+     <ParticleScaleAffector type="0" endScale="1"/>
+     <ParticleColorAffector type="0" endColorR="0.5" endColorG="1" endColorB="1" endColorA="0"/>
+     <ParticleRotationAffector type="0" rotationEnd="0"/>
+</particleSystem>  
+ 
+
+
+

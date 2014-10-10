@@ -521,7 +521,6 @@ protected:
     virtual void updateBlendFunc(void);
     virtual void setReorderChildDirtyRecursively(void);
     virtual void setDirtyRecursively(bool bValue);
-
     //
     // Data used when the sprite is rendered using a SpriteSheet
     //

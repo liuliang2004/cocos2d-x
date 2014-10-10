@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include "Camera3DTest.h"
 #include <algorithm>
 #include "../testResource.h"
-
+#include "3d/CCParticleSystem3D.h"
 ////////////DrawLine/////////////////////
 
 class DrawLine3D: public Node
@@ -312,7 +312,12 @@ void Camera3DTestDemo::onEnter()
     line->drawLine(Vec3(0, -50, 0),Vec3(0,0,0),Color4F(0,0.5,0,1));
     line->drawLine(Vec3(0, 0, 0),Vec3(0,50,0),Color4F(0,1,0,1));
     _layer3D->addChild(line);
+     ParticleSystem3D* particleSystem3D = ParticleSystem3D::create("Sprite3DTest/particle3Dtest1.particle");
+     particleSystem3D->setScale(2);
+     particleSystem3D->start();
+     _layer3D->addChild(particleSystem3D);
     _layer3D->setCameraMask(2);
+    
 }
 void Camera3DTestDemo::onExit()
 {

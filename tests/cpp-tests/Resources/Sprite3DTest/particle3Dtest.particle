@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<particleSystem totalParticles="1"   textureName="CameraTest/22.png">
+  <ParticlePointEmitter emitDelay="0.0" emitDuration="-1"  emitRate="200" life="2" lifeVar="0" startColorR="1" startColorG="0" startColorB="0" startColorA="1" startColorVarR="0" startColorVarG="0" startColorVarB="0" startColorVarA="0" dirType="0" velocityAxisX="0" velocityAxisY="1" velocityAxisZ="0" startSpeed="20" startSpeedVar="0" startScale="1" startScaleVar="0" startRotation="0" startRotationVar="0" uvRectLeft="0" uvRectTop="0" uvRectRight="1" uvRectBottom="1"/>
+  <ParticleMeshRender  meshName="test" />
+  <ParticleScaleAffector type="0" endScale="3"/>
+  <ParticleColorAffector type="0" endColorR="1" endColorG="1" endColorB="1" endColorA="0.5"/>
+  <ParticleRotationAffector type="0" rotationEnd="360"/>
+</particleSystem>
+

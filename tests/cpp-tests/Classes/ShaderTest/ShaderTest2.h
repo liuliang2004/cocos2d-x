@@ -3,7 +3,7 @@
 #include "../testBasic.h"
 #include "extensions/cocos-ext.h"
 #include "../BaseTest.h"
-
+#include "base/CCLight.h"
 USING_NS_CC_EXT;
 
 class ShaderTestDemo2 : public BaseTest
@@ -34,9 +34,10 @@ class Effect : public Ref
 public:
     GLProgramState* getGLProgramState() const { return _glprogramstate; }
     virtual void setTarget(EffectSprite *sprite){}
-
+    virtual void setLightUniforms(){}
 protected:
     bool initGLProgramState(const std::string &fragmentFilename);
+   
     Effect();
     virtual ~Effect();
     GLProgramState *_glprogramstate;
@@ -57,6 +58,7 @@ protected:
     ssize_t _vectorIndex;
     cocos2d::Vector<Effect*> _effects;
     EffectSprite *_sprite;
+    PointLight*  _pointLight;
 };
 
 

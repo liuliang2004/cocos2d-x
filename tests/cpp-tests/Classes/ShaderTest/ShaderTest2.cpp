@@ -152,12 +152,16 @@ public:
     {
         // Don't do calculate the culling if the transform was not updated
         _insideBounds = (flags & FLAGS_TRANSFORM_DIRTY) ? renderer->checkVisibility(transform, _contentSize) : _insideBounds;
-
+        if(_defaultEffect)
+        {
+             _defaultEffect->setLightUniforms();
+        }
         if(_insideBounds)
         {
             // negative effects: order < 0
             int idx=0;
             for(auto &effect : _effects) {
+
 
                 if(std::get<0>(effect) >=0)
                     break;
@@ -167,7 +171,6 @@ public:
                 idx++;
 
             }
-
             // normal effect: order == 0
             _quadCommand.init(_globalZOrder, _texture->getName(), getGLProgramState(), _blendFunc, &_quad, 1, transform);
             renderer->addCommand(&_quadCommand);
@@ -308,6 +311,59 @@ public:
     }
 };
 
+// Outline
+class EffectNormalMapped : public Effect
+{
+public:
+    CREATE_FUNC(EffectNormalMapped);
+    static EffectNormalMapped* create(const std::string&normalMapFileName)
+    {
+        EffectNormalMapped *normalMappedSprite = new (std::nothrow) EffectNormalMapped();
+        if (normalMappedSprite && normalMappedSprite->init() && normalMappedSprite->initNormalMap(normalMapFileName))
+        {
+
+            normalMappedSprite->autorelease();
+            return normalMappedSprite;
+        }
+        CC_SAFE_DELETE(normalMappedSprite);
+    }
+    void setPointLight(PointLight* pointLight)
+    {
+        _pointLight =  pointLight;
+    }
+protected:
+    bool init()
+    {
+        initGLProgramState("Shaders/example_normal.fsh");
+        return true;
+    }
+    bool initNormalMap(const std::string&normalMapFileName)
+    {
+         auto normalMapTextrue = TextureCache::getInstance()->addImage(normalMapFileName.c_str());
+         getGLProgramState()->setUniformTexture("u_normalMap", normalMapTextrue); 
+         return true;
+    }
+    virtual void setTarget(EffectSprite* sprite) override
+    {
+         _sprite = sprite;
+        getGLProgramState()->setUniformFloat("u_kBump", 4.0f);
+        getGLProgramState()->setUniformVec2("u_contentSize", Vec2(sprite->getContentSize().width,sprite->getContentSize().height)); 
+    }
+    void setLightUniforms()
+    {
+        if(_pointLight && _sprite)
+        {
+            Size winSize=Director::getInstance()->getWinSize();
+            Mat4 mat= _pointLight->getNodeToWorldTransform();
+            Point lightPosInLocalSpace=PointApplyAffineTransform(Vec2(mat.m[12], mat.m[13]),_sprite->parentToNodeTransform());
+            getGLProgramState()->setUniformVec4("u_lightPosInLocalSpace", Vec4(lightPosInLocalSpace.x,lightPosInLocalSpace.y,mat.m[14],1));
+            const Color3B &col = _pointLight->getDisplayedColor();
+            getGLProgramState()->setUniformVec3("u_diffuseL", Vec3(col.r/255.0f,col.g/255.0f,col.b/255.0f));
+        }
+    }
+    PointLight *_pointLight;
+    EffectSprite* _sprite;
+};
 // Noise
 class EffectNoise : public Effect
 {
@@ -463,21 +519,30 @@ EffectSpriteTest::EffectSpriteTest()
         menu->setPosition(Vec2(s.width/2,70));
         addChild(menu);
 
-        _sprite = EffectSprite::create("Images/grossini.png");
-        _sprite->setPosition(Vec2(0, s.height/2));
+        _sprite = EffectSprite::create("Images/fish2.png");
+        _sprite->setPosition(Vec2(s.width/2, s.height/2));
         addChild(_sprite);
+          Size winSize=Director::getInstance()->getWinSize();
+         _pointLight = PointLight::create(Vec3(winSize.width/4, winSize.height/4*3,50), Color3B(200, 0, 0), 10000.0f);
+         _pointLight->retain();
+         _pointLight->setEnabled(true);
+         _pointLight->setCameraMask(1);
+         addChild(_pointLight);
 
-        auto jump = JumpBy::create(4, Vec2(s.width,0), 100, 4);
+      /*  auto jump = JumpBy::create(4, Vec2(s.width,0), 100, 4);
         auto rot = RotateBy::create(4, 720);
         auto spawn = Spawn::create(jump, rot, nullptr);
         auto rev = spawn->reverse();
         auto seq = Sequence::create(spawn, rev, nullptr);
         auto repeat = RepeatForever::create(seq);
-        _sprite->runAction(repeat);
+        _sprite->runAction(repeat);*/
 
         // set the Effects
         _effects.pushBack(EffectBlur::create());
         _effects.pushBack(EffectOutline::create());
+        auto  effectNormalMapped = EffectNormalMapped::create("Images/fish2_normal.png");
+        effectNormalMapped->setPointLight(_pointLight);
+        _effects.pushBack(effectNormalMapped);
         _effects.pushBack(EffectNoise::create());
         _effects.pushBack(EffectEdgeDetect::create());
         _effects.pushBack(EffectGreyScale::create());
@@ -489,6 +554,7 @@ EffectSpriteTest::EffectSpriteTest()
         _vectorIndex = 0;
         _sprite->setEffect( _effects.at(_vectorIndex) );
 
+        
 //        _sprite->addEffect( _effects.at(8), -10 );
 //        _sprite->addEffect( _effects.at(1), 1 );
 
